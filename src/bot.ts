@@ -4,17 +4,19 @@ import { minimatch } from 'minimatch'
 import { Chat } from './chat.js';
 import log from 'loglevel';
 
-const OPENAI_API_KEY = 'OPENAI_API_KEY';
+const ANTHROPIC_API_KEY = 'ANTHROPIC_API_KEY';
 const MAX_PATCH_COUNT = process.env.MAX_PATCH_LENGTH
   ? +process.env.MAX_PATCH_LENGTH
   : Infinity;
 
 export const robot = (app: Probot) => {
   const loadChat = async (context: Context) => {
-    if (process.env.USE_GITHUB_MODELS === 'true' && process.env.GITHUB_TOKEN) {
-      return new Chat(process.env.GITHUB_TOKEN);
+    // Check for Anthropic API key first
+    if (process.env.ANTHROPIC_API_KEY) {
+      return new Chat(process.env.ANTHROPIC_API_KEY);
     }
 
+    // Fallback to OpenAI if configured
     if (process.env.OPENAI_API_KEY) {
       return new Chat(process.env.OPENAI_API_KEY);
     }
@@ -27,7 +29,7 @@ export const robot = (app: Probot) => {
         {
           owner: repo.owner,
           repo: repo.repo,
-          name: OPENAI_API_KEY,
+          name: ANTHROPIC_API_KEY,
         }
       )) as any;
 
@@ -41,7 +43,7 @@ export const robot = (app: Probot) => {
         repo: repo.repo,
         owner: repo.owner,
         issue_number: context.pullRequest().pull_number,
-        body: `Seems you are using me but didn't get OPENAI_API_KEY seted in Variables/Secrets for this repo. you could follow [readme](https://github.com/anc95/ChatGPT-CodeReview) for more information`,
+        body: `Seems you are using me but didn't get ANTHROPIC_API_KEY seted in Variables/Secrets for this repo. you could follow [readme](https://github.com/anc95/ChatGPT-CodeReview) for more information`,
       });
       return null;
     }
