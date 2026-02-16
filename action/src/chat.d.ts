@@ -1,9 +1,8 @@
 export declare class Chat {
-    private openai;
-    private isAzure;
-    private isGithubModels;
+    private anthropic;
     constructor(apikey: string);
-    private generatePrompt;
+    private generateSystemPrompt;
+    private generateUserPrompt;
     codeReview: (patch: string) => Promise<Array<{
         lgtm: boolean;
         review_comment: string;
