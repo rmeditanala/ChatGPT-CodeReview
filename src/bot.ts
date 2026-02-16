@@ -190,7 +190,7 @@ export const robot = (app: Probot) => {
 
       console.time('gpt cost');
 
-      const ress = [];
+      let reviewBody = '';
 
       for (let i = 0; i < changedFiles.length; i++) {
         const file = changedFiles[i];
@@ -209,27 +209,24 @@ export const robot = (app: Probot) => {
         try {
           const res = await chat?.codeReview(patch);
 
-          // If not LGTM and there's a review comment, add it to the results
+          // If not LGTM and there's a review comment, add it to the review body
           if (!res.lgtm && res.review_comment) {
-            ress.push({
-              path: file.filename,
-              body: res.review_comment,
-            });
+            reviewBody += `## ${file.filename}\n\n${res.review_comment}\n\n`;
           }
         } catch (e) {
           log.info(`review ${file.filename} failed`, e);
           throw e;
         }
       }
+
       try {
         await context.octokit.pulls.createReview({
           repo: repo.repo,
           owner: repo.owner,
           pull_number: context.pullRequest().pull_number,
-          body: ress.length ? "Code review by ChatGPT" : "LGTM 👍",
-          event: 'COMMENT',
+          body: reviewBody || 'LGTM 👍',
+          event: reviewBody ? 'COMMENT' : 'APPROVE',
           commit_id: context.payload.pull_request.head.sha,
-          comments: ress,
         });
       } catch (e) {
         log.info(`Failed to create review`, e);
