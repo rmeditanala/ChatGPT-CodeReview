@@ -208,34 +208,13 @@ export const robot = (app: Probot) => {
         }
         try {
           const res = await chat?.codeReview(patch);
-          // res can be a single review or an array of reviews (one for each hunk)
-          const reviews = Array.isArray(res) ? res : [res];
-          
-          for (const review of reviews) {
-            if (!review.lgtm && !!review.review_comment) {
-              let line: number | undefined;
-              let side: 'LEFT' | 'RIGHT' = 'RIGHT';
 
-              // Extract line number from hunk header if available
-              if (review.hunk_header) {
-                const c = review.hunk_header.match(/\+\s*(\d+),(\d+)/);
-                if (c) {
-                  const [, start, count] = c;
-                  line = Number(start) + Number(count) - 1;
-                }
-                else {
-                  log.error(`Failed to parse hunk header: ${review.hunk_header}`);
-                  continue;
-                }
-              }
-
-              ress.push({
-                path: file.filename,
-                body: review.review_comment,
-                line: line,
-                side: side,
-              })
-            }
+          // If not LGTM and there's a review comment, add it to the results
+          if (!res.lgtm && res.review_comment) {
+            ress.push({
+              path: file.filename,
+              body: res.review_comment,
+            });
           }
         } catch (e) {
           log.info(`review ${file.filename} failed`, e);
