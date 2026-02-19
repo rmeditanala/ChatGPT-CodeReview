@@ -225,7 +225,7 @@ export const robot = (app: Probot) => {
           owner: repo.owner,
           pull_number: context.pullRequest().pull_number,
           body: reviewBody || 'LGTM 👍',
-          event: reviewBody ? 'COMMENT' : 'APPROVE',
+          event: 'COMMENT',
           commit_id: context.payload.pull_request.head.sha,
         });
       } catch (e) {
